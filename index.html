@@ -6,34 +6,10 @@
   <title>NAUFest 2026 — Dashboard de Gestión</title>
   <meta name="description" content="Dashboard de gestión y cronograma en tiempo real para NAUFest 2026. Visualización para público y staff técnico." />
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            nau: {
-              primary: '#2f5aae',
-              secondary: '#22404d',
-              lavanda: '#9463ae',
-              terracota: '#be574b',
-              dark: '#121212',
-              light: '#f8fafc',
-            }
-          },
-          fontFamily: {
-            sans: ['Montserrat', 'Inter', 'system-ui', 'sans-serif'],
-          },
-        }
-      }
-    }
-  </script>
-
-  <!-- Google Fonts: Montserrat -->
+  <!-- Google Fonts: Outfit + Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- React 18 CDN -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -42,14 +18,40 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
+    :root {
+      /* NAUFest Official Color Palette */
+      --nau-teal-dark: #065A67;
+      --nau-teal: #0B7B8E;
+      --nau-teal-light: #0E95AB;
+      --nau-teal-glow: #13B5CF;
+      --nau-lime: #C8E64A;
+      --nau-lime-hover: #D4ED5C;
+      --nau-dark: #0A1E24;
+      --nau-dark-mid: #112A32;
+      --nau-navy: #1A2332;
+      --nau-white: #FFFFFF;
+      --nau-offwhite: #F0F7F9;
+      --nau-text: #1A3540;
+      --nau-text-muted: #5A8A96;
+      --nau-glass: rgba(255, 255, 255, 0.08);
+      --nau-glass-border: rgba(255, 255, 255, 0.12);
+    }
+
     *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: 'Montserrat', sans-serif; margin: 0; }
+
+    body {
+      font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+      margin: 0;
+      background: var(--nau-teal);
+      color: var(--nau-white);
+      overflow-x: hidden;
+    }
 
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #2f5aae44; border-radius: 999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #2f5aae88; }
+    ::-webkit-scrollbar-thumb { background: rgba(200, 230, 74, 0.3); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(200, 230, 74, 0.6); }
 
     /* Pulsing dot animation */
     @keyframes live-dot {
@@ -64,40 +66,845 @@
       100% { background-position: 400px 0; }
     }
     .shimmer {
-      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+      background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 75%);
       background-size: 800px 100%;
       animation: shimmer 1.5s infinite;
     }
 
     /* Fade-in animation */
     @keyframes fade-in-up {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .animate-fade-in-up {
-      animation: fade-in-up 0.5s ease-out both;
+      animation: fade-in-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
-    /* Stagger delay helper */
-    .stagger-1 { animation-delay: 0.05s; }
-    .stagger-2 { animation-delay: 0.1s; }
-    .stagger-3 { animation-delay: 0.15s; }
-    .stagger-4 { animation-delay: 0.2s; }
-    .stagger-5 { animation-delay: 0.25s; }
-    .stagger-6 { animation-delay: 0.3s; }
-    .stagger-7 { animation-delay: 0.35s; }
-    .stagger-8 { animation-delay: 0.4s; }
+    /* Floating background blobs */
+    @keyframes float-blob {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
 
-    /* Gradient text */
-    .gradient-text {
-      background: linear-gradient(135deg, #2f5aae, #9463ae, #be574b);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    /* Spin */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Glow pulse for live indicator */
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 4px rgba(200, 230, 74, 0.4); }
+      50% { box-shadow: 0 0 16px rgba(200, 230, 74, 0.8); }
+    }
+
+    /* ─── Layout ─── */
+    .app-container {
+      min-height: 100vh;
+      background: linear-gradient(170deg, var(--nau-dark) 0%, var(--nau-teal-dark) 25%, var(--nau-teal) 50%, var(--nau-teal-light) 100%);
+      position: relative;
+    }
+
+    .app-container::before {
+      content: '';
+      position: fixed;
+      top: -200px;
+      right: -200px;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200, 230, 74, 0.08) 0%, transparent 70%);
+      animation: float-blob 20s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .app-container::after {
+      content: '';
+      position: fixed;
+      bottom: -150px;
+      left: -150px;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(19, 181, 207, 0.1) 0%, transparent 70%);
+      animation: float-blob 25s ease-in-out infinite reverse;
+      pointer-events: none;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      position: relative;
+      padding: 24px 0 0;
+      z-index: 10;
+    }
+
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-logo {
+      height: 56px;
+      width: auto;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+      transition: transform 0.3s ease;
+    }
+
+    .brand-logo:hover {
+      transform: scale(1.05);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: var(--nau-white);
+      line-height: 1;
+    }
+
+    .brand-title span {
+      color: var(--nau-lime);
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .last-updated {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      font-weight: 500;
+    }
+
+    .btn-refresh {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 50px;
+      border: 1px solid var(--nau-glass-border);
+      background: var(--nau-glass);
+      color: var(--nau-white);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(12px);
+    }
+
+    .btn-refresh:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .btn-refresh:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-refresh svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .btn-refresh .spinning {
+      animation: spin 1s linear infinite;
+    }
+
+    /* ─── Tab Navigation ─── */
+    .tabs-wrapper {
+      margin-top: 24px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      letter-spacing: 0.3px;
+    }
+
+    .tab-btn.active {
+      background: var(--nau-lime);
+      color: var(--nau-dark);
+      border-color: var(--nau-lime);
+      box-shadow: 0 4px 20px rgba(200, 230, 74, 0.3);
+      transform: scale(1.02);
+    }
+
+    .tab-btn.inactive {
+      background: var(--nau-glass);
+      color: rgba(255, 255, 255, 0.7);
+      border-color: var(--nau-glass-border);
+      backdrop-filter: blur(12px);
+    }
+
+    .tab-btn.inactive:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--nau-white);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* ─── Main Content ─── */
+    .main-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 24px 48px;
+      position: relative;
+      z-index: 5;
+    }
+
+    /* ─── Stats Grid ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat-card {
+      position: relative;
+      background: var(--nau-glass);
+      border: 1px solid var(--nau-glass-border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      backdrop-filter: blur(16px);
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .stat-card:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .stat-card.total::before { background: linear-gradient(180deg, var(--nau-lime), var(--nau-teal-glow)); }
+    .stat-card.en-curso::before { background: #34D399; }
+    .stat-card.pendiente::before { background: var(--nau-teal-glow); }
+    .stat-card.demorado::before { background: #FBBF24; }
+    .stat-card.completado::before { background: rgba(255,255,255,0.3); }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--nau-white);
+      line-height: 1;
+    }
+
+    /* ─── Filters ─── */
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .filter-select {
+      padding: 8px 16px;
+      border-radius: 50px;
+      border: 1px solid var(--nau-glass-border);
+      background: var(--nau-glass);
+      color: var(--nau-white);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(12px);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='rgba(255,255,255,0.5)' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    .filter-select:focus {
+      outline: none;
+      border-color: var(--nau-lime);
+      box-shadow: 0 0 0 3px rgba(200, 230, 74, 0.15);
+    }
+
+    .filter-select option {
+      background: var(--nau-dark);
+      color: var(--nau-white);
+    }
+
+    .result-count {
+      margin-left: auto;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.35);
+      font-weight: 500;
+    }
+
+    /* ─── Block Group ─── */
+    .block-group {
+      margin-bottom: 32px;
+    }
+
+    .block-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .block-header .line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(200, 230, 74, 0.3), transparent);
+    }
+
+    .block-header .line.right {
+      background: linear-gradient(90deg, transparent, rgba(200, 230, 74, 0.3));
+    }
+
+    .block-header h2 {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--nau-lime);
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    /* ─── Public Cards Grid ─── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 1024px) {
+      .cards-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── Public Card ─── */
+    .public-card {
+      position: relative;
+      background: var(--nau-glass);
+      border: 1px solid var(--nau-glass-border);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(16px);
+      transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      overflow: hidden;
+    }
+
+    .public-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: 20px 20px 0 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .public-card:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .public-card:hover::before {
+      opacity: 1;
+    }
+
+    .public-card.en-curso {
+      border-color: rgba(52, 211, 153, 0.3);
+      background: rgba(52, 211, 153, 0.08);
+    }
+    .public-card.en-curso::before { background: #34D399; }
+
+    .public-card.demorado {
+      border-color: rgba(251, 191, 36, 0.3);
+      background: rgba(251, 191, 36, 0.08);
+    }
+    .public-card.demorado::before { background: #FBBF24; }
+
+    .public-card.completado {
+      opacity: 0.5;
+    }
+    .public-card.completado::before { background: rgba(255,255,255,0.3); }
+
+    .public-card.pendiente::before { background: var(--nau-teal-glow); }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .card-time {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .card-time svg {
+      width: 14px;
+      height: 14px;
+      opacity: 0.5;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--nau-white);
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-location {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.55);
+      font-weight: 500;
+    }
+
+    .card-location svg {
+      width: 14px;
+      height: 14px;
+      opacity: 0.5;
+    }
+
+    .card-bloque-tag {
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(200, 230, 74, 0.15);
+      color: var(--nau-lime);
+      border: 1px solid rgba(200, 230, 74, 0.2);
+    }
+
+    /* ─── Status Badge ─── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      white-space: nowrap;
+    }
+
+    .status-badge.en-curso {
+      background: #34D399;
+      color: #064E3B;
+    }
+
+    .status-badge.demorado {
+      background: #FBBF24;
+      color: #78350F;
+    }
+
+    .status-badge.completado {
+      background: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .status-badge.pendiente {
+      background: rgba(19, 181, 207, 0.25);
+      color: var(--nau-teal-glow);
+      border: 1px solid rgba(19, 181, 207, 0.3);
+    }
+
+    .status-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status-badge.en-curso .dot {
+      background: #064E3B;
+      animation: glow-pulse 1.5s ease-in-out infinite;
+    }
+
+    /* ─── Staff Table ─── */
+    .staff-table-wrapper {
+      background: var(--nau-glass);
+      border: 1px solid var(--nau-glass-border);
+      border-radius: 20px;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+    }
+
+    .staff-table-scroll {
+      overflow-x: auto;
+    }
+
+    .staff-table {
+      width: 100%;
+      text-align: left;
+      border-collapse: collapse;
+    }
+
+    .staff-table thead tr {
+      background: linear-gradient(90deg, var(--nau-dark), var(--nau-dark-mid));
+    }
+
+    .staff-table thead th {
+      padding: 14px 16px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: rgba(255, 255, 255, 0.5);
+      white-space: nowrap;
+    }
+
+    .staff-table tbody tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      transition: background 0.2s ease;
+    }
+
+    .staff-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .staff-table tbody tr.en-curso {
+      background: rgba(52, 211, 153, 0.06);
+    }
+
+    .staff-table tbody tr.demorado {
+      background: rgba(251, 191, 36, 0.06);
+    }
+
+    .staff-table tbody tr.completado {
+      opacity: 0.5;
+    }
+
+    .staff-table td {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.8);
+      vertical-align: middle;
+    }
+
+    .td-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.3);
+      white-space: nowrap;
+    }
+
+    .td-time {
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      white-space: nowrap;
+    }
+
+    .td-activity {
+      font-weight: 800;
+      color: var(--nau-white);
+      max-width: 280px;
+    }
+
+    .td-location {
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .td-bloque {
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(200, 230, 74, 0.12);
+      color: var(--nau-lime);
+      border: 1px solid rgba(200, 230, 74, 0.15);
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .td-responsable {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .tech-note {
+      font-size: 11px;
+      background: rgba(251, 146, 60, 0.1);
+      color: #FB923C;
+      border: 1px solid rgba(251, 146, 60, 0.2);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .tech-note-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .no-notes {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.2);
+      font-style: italic;
+    }
+
+    /* ─── Loading / Error / Empty ─── */
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 64px 0;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(200, 230, 74, 0.15);
+      border-top-color: var(--nau-lime);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .loading-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--nau-lime);
+    }
+
+    .state-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 80px 0;
+    }
+
+    .state-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      font-size: 36px;
+    }
+
+    .state-icon.error { background: rgba(239, 68, 68, 0.15); }
+    .state-icon.empty { background: rgba(200, 230, 74, 0.1); }
+
+    .state-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--nau-white);
+      margin-bottom: 8px;
+    }
+
+    .state-desc {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+      text-align: center;
+      max-width: 400px;
+      margin-bottom: 24px;
+    }
+
+    .btn-retry {
+      padding: 14px 32px;
+      border-radius: 50px;
+      background: var(--nau-lime);
+      color: var(--nau-dark);
+      font-size: 14px;
+      font-weight: 800;
+      font-family: inherit;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 24px rgba(200, 230, 74, 0.3);
+    }
+
+    .btn-retry:hover {
+      background: var(--nau-lime-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(200, 230, 74, 0.4);
+    }
+
+    /* ─── Skeleton ─── */
+    .skeleton-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 1024px) { .skeleton-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .skeleton-grid { grid-template-columns: 1fr; } }
+
+    .skeleton-card {
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid var(--nau-glass-border);
+      background: var(--nau-glass);
+    }
+
+    .skeleton-bar {
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .skeleton-table-row {
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    /* ─── Footer ─── */
+    .footer {
+      border-top: 1px solid var(--nau-glass-border);
+      margin-top: 48px;
+    }
+
+    .footer-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .footer-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.3);
+      font-weight: 500;
+    }
+
+    .footer-powered span {
+      color: var(--nau-lime);
+      font-weight: 700;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 640px) {
+      .header-top { flex-direction: column; align-items: flex-start; }
+      .brand-logo { height: 40px; }
+      .brand-title { font-size: 22px; }
+      .stats-grid { gap: 8px; }
+      .stat-value { font-size: 22px; }
+      .tab-btn { padding: 10px 20px; font-size: 13px; }
     }
   </style>
 </head>
-<body class="bg-nau-light min-h-screen">
+<body>
   <div id="root"></div>
 
   <script type="text/babel">
@@ -116,142 +923,109 @@
       return (h || 0) * 60 + (m || 0);
     };
 
-    // ─── Status configuration ────────────────────────────────────────
-    const STATUS_CONFIG = {
-      'en curso': {
-        badge: 'bg-emerald-500 text-white',
-        card: 'border-emerald-400 bg-emerald-50/70',
-        row: 'bg-emerald-50/60',
-        label: 'En Curso',
-        icon: '▶',
-        pulse: true,
-      },
-      'demorado': {
-        badge: 'bg-amber-500 text-white',
-        card: 'border-amber-400 bg-amber-50/70',
-        row: 'bg-amber-50/60',
-        label: 'Demorado',
-        icon: '⚠',
-        pulse: false,
-      },
-      'completado': {
-        badge: 'bg-slate-400 text-white',
-        card: 'border-slate-300 bg-slate-100/60 opacity-60',
-        row: 'bg-slate-50 opacity-60',
-        label: 'Completado',
-        icon: '✓',
-        pulse: false,
-      },
-      'pendiente': {
-        badge: 'bg-[#2f5aae] text-white',
-        card: 'border-[#2f5aae]/20 bg-white',
-        row: 'bg-white',
-        label: 'Pendiente',
-        icon: '◯',
-        pulse: false,
-      },
+    // ─── Status helpers ──────────────────────────────────────────────
+    const getStatusKey = (estado) => (estado || '').toLowerCase().trim();
+
+    const STATUS_META = {
+      'en curso': { label: 'En Curso', icon: '▶', cls: 'en-curso', pulse: true },
+      'demorado': { label: 'Demorado', icon: '⚠', cls: 'demorado', pulse: false },
+      'completado': { label: 'Completado', icon: '✓', cls: 'completado', pulse: false },
+      'pendiente': { label: 'Pendiente', icon: '◯', cls: 'pendiente', pulse: false },
     };
 
-    const getStatus = (estado) => {
-      const key = (estado || '').toLowerCase().trim();
-      return STATUS_CONFIG[key] || STATUS_CONFIG['pendiente'];
+    const getMeta = (estado) => {
+      const key = getStatusKey(estado);
+      return STATUS_META[key] || STATUS_META['pendiente'];
     };
 
     // ─── SVG Icons ────────────────────────────────────────────────────
     const IconClock = () => (
-      <svg className="w-4 h-4 inline-block mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
       </svg>
     );
 
     const IconLocation = () => (
-      <svg className="w-4 h-4 inline-block mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{width:14,height:14}}>
         <path d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0L6.343 16.657a8 8 0 1111.314 0z" />
         <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     );
 
     const IconRefresh = () => (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
       </svg>
     );
 
     const IconUser = () => (
-      <svg className="w-4 h-4 inline-block mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{width:14,height:14}}>
         <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
       </svg>
     );
 
     const IconWrench = () => (
-      <svg className="w-4 h-4 inline-block mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{width:14,height:14}}>
         <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
       </svg>
     );
 
     // ─── Status Badge Component ───────────────────────────────────────
     const StatusBadge = ({ estado }) => {
-      const s = getStatus(estado);
+      const m = getMeta(estado);
       return (
-        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${s.badge} transition-all duration-300`}>
-          {s.pulse && <span className="w-2 h-2 rounded-full bg-white live-dot" />}
-          <span>{s.icon}</span>
-          <span>{s.label}</span>
+        <span className={`status-badge ${m.cls}`}>
+          {m.pulse && <span className="dot live-dot" />}
+          <span>{m.icon}</span>
+          <span>{m.label}</span>
         </span>
       );
     };
 
     // ─── Skeleton Loader ─────────────────────────────────────────────
     const SkeletonCard = () => (
-      <div className="rounded-2xl p-5 space-y-3 border border-slate-200 bg-white">
-        <div className="shimmer h-5 w-24 rounded-full" />
-        <div className="shimmer h-6 w-3/4 rounded-lg" />
-        <div className="shimmer h-4 w-1/2 rounded-lg" />
-        <div className="shimmer h-4 w-1/3 rounded-lg" />
+      <div className="skeleton-card">
+        <div className="shimmer skeleton-bar" style={{height:20,width:'40%'}} />
+        <div className="shimmer skeleton-bar" style={{height:24,width:'80%'}} />
+        <div className="shimmer skeleton-bar" style={{height:16,width:'55%'}} />
+        <div className="shimmer skeleton-bar" style={{height:16,width:'35%',marginBottom:0}} />
       </div>
     );
 
     const SkeletonTable = () => (
-      <div className="space-y-2">
+      <div>
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="shimmer h-12 rounded-xl" />
+          <div key={i} className="shimmer skeleton-table-row" style={{height:48}} />
         ))}
       </div>
     );
 
     // ─── Public Card Component ────────────────────────────────────────
     const PublicCard = ({ item, index }) => {
-      const s = getStatus(item.estado);
+      const m = getMeta(item.estado);
       const delay = Math.min(index, 8) * 0.06;
       return (
         <div
-          className={`rounded-2xl border-2 p-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${s.card}`}
-          style={{ animation: `fade-in-up 0.5s ease-out ${delay}s both` }}
+          className={`public-card ${m.cls}`}
+          style={{ animation: `fade-in-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) ${delay}s both` }}
         >
-          {/* Top row: time & status */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center text-sm font-semibold text-[#22404d]">
+          <div className="card-top">
+            <div className="card-time">
               <IconClock />
               <span>{item.hora_inicio} — {item.hora_fin}</span>
             </div>
             <StatusBadge estado={item.estado} />
           </div>
 
-          {/* Activity name */}
-          <h3 className="text-lg font-bold text-[#121212] leading-snug mb-2">
-            {item.actividad}
-          </h3>
+          <div className="card-title">{item.actividad}</div>
 
-          {/* Location & Block */}
-          <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
-            <span className="inline-flex items-center">
+          <div className="card-meta">
+            <span className="card-location">
               <IconLocation />
               {item.lugar}
             </span>
             {item.bloque && (
-              <span className="px-2.5 py-0.5 rounded-full bg-[#2f5aae]/10 text-[#2f5aae] text-xs font-semibold">
-                {item.bloque}
-              </span>
+              <span className="card-bloque-tag">{item.bloque}</span>
             )}
           </div>
         </div>
@@ -260,56 +1034,47 @@
 
     // ─── Staff Table Row ──────────────────────────────────────────────
     const StaffRow = ({ item, index }) => {
-      const s = getStatus(item.estado);
+      const m = getMeta(item.estado);
       const delay = Math.min(index, 8) * 0.04;
       return (
         <tr
-          className={`${s.row} border-b border-slate-200/80 hover:bg-[#2f5aae]/5 transition-colors duration-200`}
+          className={m.cls}
           style={{ animation: `fade-in-up 0.4s ease-out ${delay}s both` }}
         >
-          <td className="px-4 py-3 text-xs font-mono text-slate-400 whitespace-nowrap">{item.id}</td>
-          <td className="px-4 py-3 text-sm font-semibold text-[#22404d] whitespace-nowrap">
-            {item.hora_inicio} — {item.hora_fin}
+          <td className="td-id">{item.id}</td>
+          <td className="td-time">{item.hora_inicio} — {item.hora_fin}</td>
+          <td className="td-activity">{item.actividad}</td>
+          <td>
+            <span className="td-location"><IconLocation />{item.lugar}</span>
           </td>
-          <td className="px-4 py-3 text-sm font-bold text-[#121212] max-w-xs">{item.actividad}</td>
-          <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">
-            <span className="inline-flex items-center"><IconLocation />{item.lugar}</span>
+          <td><span className="td-bloque">{item.bloque}</span></td>
+          <td>
+            <span className="td-responsable"><IconUser />{item.responsable || '—'}</span>
           </td>
-          <td className="px-4 py-3">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#9463ae]/15 text-[#9463ae] text-xs font-semibold whitespace-nowrap">
-              {item.bloque}
-            </span>
-          </td>
-          <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">
-            <span className="inline-flex items-center"><IconUser />{item.responsable || '—'}</span>
-          </td>
-          <td className="px-4 py-3 max-w-xs">
+          <td style={{maxWidth:240}}>
             {item.notas_tecnicas ? (
-              <div className="text-xs bg-[#be574b]/10 text-[#be574b] border border-[#be574b]/20 rounded-xl px-3 py-2 font-medium leading-relaxed">
-                <span className="inline-flex items-center gap-1 font-bold mb-0.5"><IconWrench /> Nota Técnica:</span>
-                <br />
+              <div className="tech-note">
+                <div className="tech-note-label"><IconWrench /> Nota Técnica:</div>
                 {item.notas_tecnicas}
               </div>
             ) : (
-              <span className="text-xs text-slate-300 italic">Sin notas</span>
+              <span className="no-notes">Sin notas</span>
             )}
           </td>
-          <td className="px-4 py-3"><StatusBadge estado={item.estado} /></td>
+          <td><StatusBadge estado={item.estado} /></td>
         </tr>
       );
     };
 
     // ─── Block Group Header (Public View) ──────────────────────────────
     const BlockGroupPublic = ({ bloque, items }) => (
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="h-px flex-1 bg-gradient-to-r from-[#2f5aae]/30 to-transparent" />
-          <h2 className="text-sm font-extrabold uppercase tracking-widest text-[#2f5aae]">
-            {bloque}
-          </h2>
-          <div className="h-px flex-1 bg-gradient-to-l from-[#2f5aae]/30 to-transparent" />
+      <div className="block-group">
+        <div className="block-header">
+          <div className="line right" />
+          <h2>{bloque}</h2>
+          <div className="line" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="cards-grid">
           {items.map((item, i) => (
             <PublicCard key={item.id || i} item={item} index={i} />
           ))}
@@ -324,7 +1089,7 @@
       const [data, setData] = useState([]);
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState(null);
-      const [view, setView] = useState('publico'); // 'publico' | 'staff'
+      const [view, setView] = useState('publico');
       const [filterBloque, setFilterBloque] = useState('Todos');
       const [filterEstado, setFilterEstado] = useState('Todos');
       const [lastUpdated, setLastUpdated] = useState(null);
@@ -361,19 +1126,16 @@
       const filteredData = useMemo(() => {
         let items = data;
 
-        // Role filter
         if (view === 'publico') {
           items = items.filter(d => (d.rol_vista || '').toLowerCase().includes('publico'));
         } else {
           items = items.filter(d => (d.rol_vista || '').toLowerCase().includes('staff'));
         }
 
-        // Bloque filter
         if (filterBloque !== 'Todos') {
           items = items.filter(d => d.bloque === filterBloque);
         }
 
-        // Estado filter
         if (filterEstado !== 'Todos') {
           items = items.filter(d => (d.estado || '').toLowerCase() === filterEstado.toLowerCase());
         }
@@ -381,7 +1143,6 @@
         return items;
       }, [data, view, filterBloque, filterEstado]);
 
-      // Group by bloque for public view
       const groupedByBloque = useMemo(() => {
         const groups = {};
         filteredData.forEach(item => {
@@ -392,13 +1153,11 @@
         return groups;
       }, [filteredData]);
 
-      // Unique bloques for filter
       const bloques = useMemo(() => {
         const set = new Set(data.map(d => d.bloque).filter(Boolean));
         return ['Todos', ...Array.from(set)];
       }, [data]);
 
-      // Stats
       const stats = useMemo(() => {
         const viewItems = view === 'publico'
           ? data.filter(d => (d.rol_vista || '').toLowerCase().includes('publico'))
@@ -414,36 +1173,27 @@
 
       // ─── Render ────────────────────────────────────────────────
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+        <div className="app-container">
 
           {/* ══════ HEADER ══════ */}
-          <header className="relative overflow-hidden bg-gradient-to-r from-[#121212] via-[#22404d] to-[#121212]">
-            {/* Decorative blurs */}
-            <div className="absolute top-0 left-1/4 w-64 h-64 bg-[#2f5aae]/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-[#9463ae]/20 rounded-full blur-3xl" />
-            <div className="absolute top-1/2 right-10 w-32 h-32 bg-[#be574b]/15 rounded-full blur-2xl" />
-
-            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                {/* Brand */}
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2f5aae] to-[#9463ae] flex items-center justify-center shadow-lg shadow-[#2f5aae]/30">
-                      <span className="text-white font-black text-lg">N</span>
-                    </div>
-                    <div>
-                      <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                        NAU<span className="text-[#be574b]">Fest</span> <span className="text-[#9463ae] font-light">2026</span>
-                      </h1>
-                    </div>
+          <header className="header">
+            <div className="header-inner">
+              <div className="header-top">
+                <div className="brand">
+                  <img
+                    src="logo-naufest.png"
+                    alt="NAUFest 2026"
+                    className="brand-logo"
+                  />
+                  <div className="brand-text">
+                    <div className="brand-title">NAUFest <span>2026</span></div>
+                    <div className="brand-subtitle">Dashboard de Gestión · Cronograma en Vivo</div>
                   </div>
-                  <p className="text-slate-400 text-sm ml-[52px] -mt-1">Dashboard de Gestión · Cronograma en Vivo</p>
                 </div>
 
-                {/* Last updated & Refresh */}
-                <div className="flex items-center gap-3">
+                <div className="header-actions">
                   {lastUpdated && (
-                    <span className="text-xs text-slate-500">
+                    <span className="last-updated">
                       Actualizado: {lastUpdated.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   )}
@@ -451,35 +1201,27 @@
                     id="btn-refresh"
                     onClick={fetchData}
                     disabled={loading}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white text-sm font-semibold transition-all duration-300 disabled:opacity-40 backdrop-blur-sm"
+                    className="btn-refresh"
                   >
-                    <span className={loading ? 'animate-spin' : ''}><IconRefresh /></span>
+                    <span className={loading ? 'spinning' : ''}><IconRefresh /></span>
                     Actualizar
                   </button>
                 </div>
               </div>
 
               {/* ──── VIEW TABS ──── */}
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="tabs-wrapper">
                 <button
                   id="tab-publico"
                   onClick={() => { setView('publico'); setFilterBloque('Todos'); setFilterEstado('Todos'); }}
-                  className={`px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300
-                    ${view === 'publico'
-                      ? 'bg-white text-[#2f5aae] shadow-lg shadow-[#2f5aae]/20 scale-105'
-                      : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border border-white/10'
-                    }`}
+                  className={`tab-btn ${view === 'publico' ? 'active' : 'inactive'}`}
                 >
                   🎶 &nbsp;Vista Asistente
                 </button>
                 <button
                   id="tab-staff"
                   onClick={() => { setView('staff'); setFilterBloque('Todos'); setFilterEstado('Todos'); }}
-                  className={`px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300
-                    ${view === 'staff'
-                      ? 'bg-white text-[#22404d] shadow-lg shadow-[#22404d]/20 scale-105'
-                      : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border border-white/10'
-                    }`}
+                  className={`tab-btn ${view === 'staff' ? 'active' : 'inactive'}`}
                 >
                   🎛 &nbsp;Vista Staff Técnico
                 </button>
@@ -488,22 +1230,21 @@
           </header>
 
           {/* ══════ MAIN ══════ */}
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <main className="main-content">
 
             {/* ──── STATS BAR ──── */}
             {!loading && !error && (
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6" style={{ animation: 'fade-in-up 0.5s ease-out both' }}>
+              <div className="stats-grid animate-fade-in-up">
                 {[
-                  { label: 'Total', value: stats.total, color: 'from-[#2f5aae] to-[#9463ae]' },
-                  { label: 'En Curso', value: stats.enCurso, color: 'from-emerald-500 to-emerald-600' },
-                  { label: 'Pendiente', value: stats.pendiente, color: 'from-[#2f5aae] to-blue-600' },
-                  { label: 'Demorado', value: stats.demorado, color: 'from-amber-500 to-orange-500' },
-                  { label: 'Completado', value: stats.completado, color: 'from-slate-400 to-slate-500' },
+                  { label: 'Total', value: stats.total, cls: 'total' },
+                  { label: 'En Curso', value: stats.enCurso, cls: 'en-curso' },
+                  { label: 'Pendiente', value: stats.pendiente, cls: 'pendiente' },
+                  { label: 'Demorado', value: stats.demorado, cls: 'demorado' },
+                  { label: 'Completado', value: stats.completado, cls: 'completado' },
                 ].map((s, i) => (
-                  <div key={i} className="relative overflow-hidden rounded-2xl bg-white border border-slate-200/80 p-4 hover:shadow-md transition-shadow duration-300">
-                    <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${s.color}`} />
-                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">{s.label}</p>
-                    <p className="text-2xl font-black text-[#121212] mt-1">{s.value}</p>
+                  <div key={i} className={`stat-card ${s.cls}`}>
+                    <div className="stat-label">{s.label}</div>
+                    <div className="stat-value">{s.value}</div>
                   </div>
                 ))}
               </div>
@@ -511,28 +1252,26 @@
 
             {/* ──── FILTERS ──── */}
             {!loading && !error && (
-              <div className="flex flex-wrap items-center gap-3 mb-6" style={{ animation: 'fade-in-up 0.5s ease-out 0.1s both' }}>
-                {/* Bloque filter */}
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Bloque:</label>
+              <div className="filters-bar animate-fade-in-up" style={{animationDelay:'0.1s'}}>
+                <div className="filter-group">
+                  <label className="filter-label">Bloque:</label>
                   <select
                     id="filter-bloque"
                     value={filterBloque}
                     onChange={e => setFilterBloque(e.target.value)}
-                    className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-sm text-[#121212] font-medium focus:outline-none focus:ring-2 focus:ring-[#2f5aae]/30 transition-all cursor-pointer"
+                    className="filter-select"
                   >
                     {bloques.map(b => <option key={b} value={b}>{b}</option>)}
                   </select>
                 </div>
 
-                {/* Estado filter */}
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Estado:</label>
+                <div className="filter-group">
+                  <label className="filter-label">Estado:</label>
                   <select
                     id="filter-estado"
                     value={filterEstado}
                     onChange={e => setFilterEstado(e.target.value)}
-                    className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-sm text-[#121212] font-medium focus:outline-none focus:ring-2 focus:ring-[#2f5aae]/30 transition-all cursor-pointer"
+                    className="filter-select"
                   >
                     {['Todos', 'En Curso', 'Pendiente', 'Demorado', 'Completado'].map(e => (
                       <option key={e} value={e}>{e}</option>
@@ -540,8 +1279,7 @@
                   </select>
                 </div>
 
-                {/* Result count */}
-                <span className="ml-auto text-xs text-slate-400 font-medium">
+                <span className="result-count">
                   {filteredData.length} actividad{filteredData.length !== 1 ? 'es' : ''}
                 </span>
               </div>
@@ -549,13 +1287,13 @@
 
             {/* ──── LOADING STATE ──── */}
             {loading && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-center gap-3 py-8">
-                  <div className="w-8 h-8 border-4 border-[#2f5aae]/20 border-t-[#2f5aae] rounded-full animate-spin" />
-                  <span className="text-[#2f5aae] font-semibold text-lg">Cargando cronograma...</span>
+              <div>
+                <div className="loading-container">
+                  <div className="spinner" />
+                  <span className="loading-text">Cargando cronograma...</span>
                 </div>
                 {view === 'publico' ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="skeleton-grid">
                     {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
                   </div>
                 ) : (
@@ -566,17 +1304,11 @@
 
             {/* ──── ERROR STATE ──── */}
             {error && (
-              <div className="flex flex-col items-center justify-center py-16" style={{ animation: 'fade-in-up 0.5s ease-out both' }}>
-                <div className="w-20 h-20 rounded-full bg-[#be574b]/10 flex items-center justify-center mb-4">
-                  <span className="text-4xl">⚠️</span>
-                </div>
-                <h2 className="text-xl font-bold text-[#121212] mb-2">Error al cargar datos</h2>
-                <p className="text-slate-500 text-sm text-center max-w-md mb-6">{error}</p>
-                <button
-                  id="btn-retry"
-                  onClick={fetchData}
-                  className="px-6 py-3 rounded-full bg-gradient-to-r from-[#2f5aae] to-[#9463ae] text-white font-bold text-sm shadow-lg shadow-[#2f5aae]/30 hover:shadow-xl hover:scale-105 transition-all duration-300"
-                >
+              <div className="state-container animate-fade-in-up">
+                <div className="state-icon error">⚠️</div>
+                <div className="state-title">Error al cargar datos</div>
+                <div className="state-desc">{error}</div>
+                <button id="btn-retry" onClick={fetchData} className="btn-retry">
                   Reintentar conexión
                 </button>
               </div>
@@ -584,18 +1316,14 @@
 
             {/* ──── EMPTY STATE ──── */}
             {!loading && !error && filteredData.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-16" style={{ animation: 'fade-in-up 0.5s ease-out both' }}>
-                <div className="w-20 h-20 rounded-full bg-[#9463ae]/10 flex items-center justify-center mb-4">
-                  <span className="text-4xl">📋</span>
-                </div>
-                <h2 className="text-xl font-bold text-[#121212] mb-2">Sin actividades</h2>
-                <p className="text-slate-500 text-sm">No se encontraron actividades con los filtros seleccionados.</p>
+              <div className="state-container animate-fade-in-up">
+                <div className="state-icon empty">📋</div>
+                <div className="state-title">Sin actividades</div>
+                <div className="state-desc">No se encontraron actividades con los filtros seleccionados.</div>
               </div>
             )}
 
-            {/* ══════════════════════════════════════════════════════════ */}
             {/* ──── PUBLIC VIEW (CARDS) ──── */}
-            {/* ══════════════════════════════════════════════════════════ */}
             {!loading && !error && view === 'publico' && filteredData.length > 0 && (
               <div>
                 {Object.entries(groupedByBloque).map(([bloque, items]) => (
@@ -604,26 +1332,24 @@
               </div>
             )}
 
-            {/* ══════════════════════════════════════════════════════════ */}
             {/* ──── STAFF VIEW (TABLE) ──── */}
-            {/* ══════════════════════════════════════════════════════════ */}
             {!loading && !error && view === 'staff' && filteredData.length > 0 && (
-              <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden" style={{ animation: 'fade-in-up 0.5s ease-out both' }}>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
+              <div className="staff-table-wrapper animate-fade-in-up">
+                <div className="staff-table-scroll">
+                  <table className="staff-table">
                     <thead>
-                      <tr className="bg-gradient-to-r from-[#22404d] to-[#121212] text-white">
-                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">ID</th>
-                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Horario</th>
-                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Actividad</th>
-                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Lugar</th>
-                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Bloque</th>
-                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Responsable</th>
-                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider min-w-[220px]">Notas Técnicas</th>
-                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Estado</th>
+                      <tr>
+                        <th>ID</th>
+                        <th>Horario</th>
+                        <th>Actividad</th>
+                        <th>Lugar</th>
+                        <th>Bloque</th>
+                        <th>Responsable</th>
+                        <th style={{minWidth:220}}>Notas Técnicas</th>
+                        <th>Estado</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody>
                       {filteredData.map((item, i) => (
                         <StaffRow key={item.id || i} item={item} index={i} />
                       ))}
@@ -635,13 +1361,13 @@
           </main>
 
           {/* ══════ FOOTER ══════ */}
-          <footer className="border-t border-slate-200/80 mt-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <p className="text-xs text-slate-400">
+          <footer className="footer">
+            <div className="footer-inner">
+              <p className="footer-text">
                 NAUFest 2026 · Dashboard de Gestión · Datos en vivo desde Google Sheets
               </p>
-              <p className="text-xs text-slate-300">
-                Powered by <span className="font-semibold text-[#2f5aae]">Sheetson API</span>
+              <p className="footer-text footer-powered">
+                Powered by <span>Sheetson API</span>
               </p>
             </div>
           </footer>
